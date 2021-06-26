@@ -1,0 +1,13 @@
+# Create a pool called "aws-east" in the namespace "aws-east".  Once the pool is created (size can be zero)
+# Apply the clusterClaim resource. A cluster will either be provisioned or resumed and imported into ACM or OCM.
+#
+# oc apply -f ./clusterclaim.yaml
+# 
+---
+apiVersion: hive.openshift.io/v1
+kind: ClusterClaim
+metadata:
+  name: my-cluster
+  namespace: aws-east
+spec:
+  clusterPoolName: aws-east  # Create a cluster pool using the Infrastructure > Clusters > Cluster pools console

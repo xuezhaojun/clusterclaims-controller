@@ -1,0 +1,22 @@
+-include /opt/build-harness/Makefile.prow
+
+.PHONY: push
+push: build
+	docker push ${REPO_URL}/clusterclaims-controller:${VERSION}
+	docker tag ${REPO_URL}/clusterclaims-controller:${VERSION} ${REPO_URL}/clusterclaims-controller:latest
+	docker push ${REPO_URL}/clusterclaims-controller:latest
+
+.PHONY: compile
+compile:
+	go mod vendor
+	go mod tidy
+	GOFLAGS="" go build -o build/_output/manager ./cmd/main.go
+
+.PHONY: build
+build: 
+	docker build -f Dockerfile.prow . -t ${REPO_URL}/clusterclaims-controller:${VERSION}
+
+.PHONY: unit-tests
+unit-tests:
+	GOFLAGS="" go test -timeout 120s -v -short ./controllers
+	
