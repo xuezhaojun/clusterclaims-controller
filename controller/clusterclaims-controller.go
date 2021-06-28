@@ -200,11 +200,17 @@ func deleteResources(r *ClusterClaimsReconciler, target string) error {
 
 	} else {
 
-		err = r.Delete(ctx, &mc)
-		if err != nil {
-			log.V(WARN).Info("Error while deleting ManagedCluster resource: " + target)
+		if mc.DeletionTimestamp == nil {
+
+			err = r.Delete(ctx, &mc)
+			if err != nil {
+				log.V(WARN).Info("Error while deleting ManagedCluster resource: " + target)
+			}
+			log.V(INFO).Info("Deleted ManagedCluster resource: " + target)
+
+		} else {
+			log.V(WARN).Info("The managedCluster resource: " + target + " is already being deleted")
 		}
-		log.V(INFO).Info("Deleted ManagedCluster resource: " + target)
 	}
 
 	var kac kacv1.KlusterletAddonConfig
@@ -218,11 +224,17 @@ func deleteResources(r *ClusterClaimsReconciler, target string) error {
 
 	} else {
 
-		err = r.Delete(ctx, &kac)
-		if err != nil {
-			log.V(WARN).Info("Error while deleting KlusterletAddonConfig resource: " + target)
+		if kac.DeletionTimestamp == nil {
+
+			err = r.Delete(ctx, &kac)
+			if err != nil {
+				log.V(WARN).Info("Error while deleting KlusterletAddonConfig resource: " + target)
+			}
+			log.V(INFO).Info("Deleted KlusterletAddonConfig resource: " + target)
+
+		} else {
+			log.V(WARN).Info("The klusterletAddonConfig resource: " + target + " is already being deleted")
 		}
-		log.V(INFO).Info("Deleted KlusterletAddonConfig resource: " + target)
 	}
 	return nil
 }
