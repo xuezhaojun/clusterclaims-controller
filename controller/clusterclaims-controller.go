@@ -16,6 +16,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -62,8 +63,8 @@ func (r *ClusterClaimsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		if err := deleteResources(r, target); err != nil {
 			return ctrl.Result{}, err
 		}
-		removeFinalizer(r, &cc)
-		return ctrl.Result{}, nil
+
+		return ctrl.Result{}, removeFinalizer(r, &cc)
 	}
 
 	// ManagedCluster
@@ -160,25 +161,18 @@ func createKlusterletAddonConfig(r *ClusterClaimsReconciler, target string) (ctr
 
 func setFinalizer(r *ClusterClaimsReconciler, cc *hivev1.ClusterClaim) error {
 
-	for _, finalizer := range cc.Finalizers {
-		if finalizer == FINALIZER {
-			return nil
-		}
-	}
-	cc.Finalizers = append(cc.Finalizers, FINALIZER)
+	controllerutil.AddFinalizer(cc, FINALIZER)
 
-	if err := r.Update(context.Background(), cc); err != nil {
-		return err
-	}
-	return nil
+	return r.Update(context.Background(), cc)
 }
 
 func removeFinalizer(r *ClusterClaimsReconciler, cc *hivev1.ClusterClaim) error {
-	if cc.Finalizers == nil {
+
+	if !controllerutil.ContainsFinalizer(cc, FINALIZER) {
 		return nil
 	}
 
-	cc.Finalizers = nil
+	controllerutil.RemoveFinalizer(cc, FINALIZER)
 
 	r.Log.V(INFO).Info("Removed finalizer on cluster claim: " + cc.Name)
 	return r.Update(context.Background(), cc)
