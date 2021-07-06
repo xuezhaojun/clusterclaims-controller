@@ -68,7 +68,7 @@ func (r *ClusterClaimsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	}
 
 	// ManagedCluster
-	if res, err := createManagedCluster(r, target); err != nil {
+	if res, err := createManagedCluster(r, target, cc.Labels); err != nil {
 		return res, err
 	}
 
@@ -95,7 +95,7 @@ func (r *ClusterClaimsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}).Complete(r)
 }
 
-func createManagedCluster(r *ClusterClaimsReconciler, target string) (ctrl.Result, error) {
+func createManagedCluster(r *ClusterClaimsReconciler, target string, labels map[string]string) (ctrl.Result, error) {
 	log := r.Log
 	ctx := context.Background()
 
@@ -107,6 +107,7 @@ func createManagedCluster(r *ClusterClaimsReconciler, target string) (ctrl.Resul
 		mc.Name = target
 		mc.Spec.HubAcceptsClient = true
 		mc.ObjectMeta.Labels = map[string]string{"vendor": "OpenShift"}
+		mc.Labels = labels
 
 		if err = r.Create(ctx, &mc, &client.CreateOptions{}); err != nil {
 
