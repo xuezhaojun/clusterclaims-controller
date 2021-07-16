@@ -6,7 +6,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/jnpacker/clusterclaims-controller/controller"
+	controller "github.com/jnpacker/clusterclaims-controller/controllers/clusterpools"
 	mcv1 "github.com/open-cluster-management/api/cluster/v1"
 	kacv1 "github.com/open-cluster-management/klusterlet-addon-controller/pkg/apis/agent/v1"
 	hivev1 "github.com/openshift/hive/apis/hive/v1"
@@ -36,7 +36,7 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-addr", ":8383", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -46,20 +46,19 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.Level(zapcore.InfoLevel)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme: scheme,
-		//MetricsBindAddress: metricsAddr,
-		Port:             9443,
-		LeaderElection:   enableLeaderElection,
-		LeaderElectionID: "clusterclaims-controller.open-cluster-management.io",
+		Scheme:             scheme,
+		MetricsBindAddress: metricsAddr,
+		LeaderElection:     enableLeaderElection,
+		LeaderElectionID:   "clusterpools-controller.open-cluster-management.io",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if err = (&controller.ClusterClaimsReconciler{
+	if err = (&controller.ClusterPoolsReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controller").WithName("ClusterClaimsReconciler"),
+		Log:    ctrl.Log.WithName("controller").WithName("ClusterPoolsReconciler"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller")
