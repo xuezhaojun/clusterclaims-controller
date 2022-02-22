@@ -148,7 +148,10 @@ func createManagedCluster(
 			}
 		}
 
-		//TODO maintain label for claim
+		// Use the ClusterClaim name instead of the actual cluster name if a name was not included from the ClusterClaim
+		if _, ok := newLabels["name"]; !ok {
+			newLabels["name"] = claimName
+		}
 		newLabels["vendor"] = "OpenShift"  // This is always true
 		newLabels["cloud"] = "auto-detect" //This is used to detect cloud provider, like: GCP,AWS
 
